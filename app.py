@@ -16,40 +16,48 @@ st.set_page_config(
 # DICCIONARIO TERRITORIAL EXHAUSTIVO
 # Mapea Servicios de Salud (GLOSA_SSS) con sus regiones político-administrativas
 # ==============================================================================
+import unicodedata
+def normalizar_texto(texto):
+    """Elimina tildes, comillas, puntos y pasa a minúsculas para comparaciones infalibles."""
+    if not isinstance(texto, str):
+        return ""
+    # Quitar acentos/tildes
+    texto_sin_tildes = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('utf-8')
+    # Quitar caracteres especiales comunes y pasar a minúsculas
+    return texto_sin_tildes.replace("'", "").replace(".", "").replace("-", " ").lower().strip()
+
 MAPA_REGIONES = {
-    "Región de Arica y Parinacota": ["Arica"],
-    "Región de Tarapacá": ["Tarapacá", "Tarapaca"],
-    "Región de Antofagasta": ["Antofagasta"],
-    "Región de Atacama": ["Atacama"],
-    "Región de Coquimbo": ["Coquimbo"],
-    "Región de Valparaíso": ["Valparaíso", "Valparaiso", "Viña del Mar", "Aconcagua"],
+    "Región de Arica y Parinacota": ["arica", "parinacota"],
+    "Región de Tarapacá": ["tarapaca", "iquique"],
+    "Región de Antofagasta": ["antofagasta"],
+    "Región de Atacama": ["atacama", "copiapo"],
+    "Región de Coquimbo": ["coquimbo", "la serena"],
+    "Región de Valparaíso": ["valparaiso", "vina del mar", "aconcagua"],
     "Región Metropolitana": [
-        "Metropolitano Central", "Metropolitano Norte", "Metropolitano Oriente",
-        "Metropolitano Sur", "Metropolitano Sur Oriente", "Metropolitano Occidente"
+        "metropolitano", "central", "norte", "oriente", "sur oriente", "occidente"
     ],
     "Región de O'Higgins": [
-        "Libertador B. O'Higgins", "Libertador B.O'Higgins", "O'Higgins", "Ohiggins", "Rancagua"
+        "libertador", "ohiggins", "rancagua"
     ],
-    "Región del Maule": ["Maule", "Del Maule", "Talca"],
-    "Región de Ñuble": ["Ñuble", "Nuble"],
-    "Región del Biobío": ["Concepción", "Concepcion", "Talcahuano", "Biobío", "Biobio", "Arauco"],
-    "Región de La Araucanía": ["Araucanía Norte", "Araucanía Sur", "Araucania Norte", "Araucania Sur"],
-    "Región de Los Ríos": ["Valdivia", "Los Ríos", "Los Rios"],
-    "Región de Los Lagos": ["Osorno", "Reloncaví", "Reloncavi", "Chiloé", "Chiloe", "Los Lagos"],
+    "Región del Maule": ["maule", "talca"],
+    "Región de Ñuble": ["nuble", "chillan"],
+    "Región del Biobío": ["concepcion", "talcahuano", "biobio", "arauco"],
+    "Región de La Araucanía": ["araucania", "temuco"],
+    "Región de Los Ríos": ["valdivia", "los rios"],
+    "Región de Los Lagos": ["osorno", "reloncavi", "chiloe", "los lagos", "puerto montt"],
     "Región de Aysén": [
-        "Aysén", "Aysen", "Aysén del General Carlos Ibáñez del Campo",
-        "Aysen del General Carlos Ibañez del Campo", "Coyhaique"
+        "aysen", "ibanez", "coyhaique"
     ],
-    "Región de Magallanes": ["Magallanes", "Punta Arenas"]
+    "Región de Magallanes": ["magallanes", "punta arenas"]
 }
 
 def asignar_region(glosa):
-    if not isinstance(glosa, str):
+    glosa_norm = normalizar_texto(glosa)
+    if not glosa_norm:
         return "Otras"
-    glosa_limpia = glosa.lower()
-    for region, servicios in MAPA_REGIONES.items():
-        for srv in servicios:
-            if srv.lower() in glosa_limpia:
+    for region, palabras_clave in MAPA_REGIONES.items():
+        for clave in palabras_clave:
+            if clave in glosa_norm:
                 return region
     return "Otras"
 
