@@ -17,13 +17,15 @@ st.set_page_config(
 # Mapea Servicios de Salud (GLOSA_SSS) con sus regiones político-administrativas
 # ==============================================================================
 import unicodedata
+
 def normalizar_texto(texto):
-    """Elimina tildes, comillas, puntos y pasa a minúsculas para comparaciones infalibles."""
     if not isinstance(texto, str):
         return ""
-    # Quitar acentos/tildes
-    texto_sin_tildes = unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('utf-8')
-    # Quitar caracteres especiales comunes y pasar a minúsculas
+    # Descompone caracteres con acentos y virgulillas (ñ -> n~)
+    texto_norm = unicodedata.normalize('NFKD', texto)
+    # Filtra quitando las marcas diacríticas (elimina tildes y el signo de la ñ)
+    texto_sin_tildes = "".join(c for c in texto_norm if not unicodedata.combining(c))
+    # Limpia signos y pasa a minúsculas
     return texto_sin_tildes.replace("'", "").replace(".", "").replace("-", " ").lower().strip()
 
 MAPA_REGIONES = {
@@ -46,7 +48,13 @@ MAPA_REGIONES = {
     "Región de Los Ríos": ["valdivia", "los rios"],
     "Región de Los Lagos": ["osorno", "reloncavi", "chiloe", "los lagos", "puerto montt"],
     "Región de Aysén": [
-        "aysen", "ibanez", "coyhaique"
+        "aysen", 
+        "coyhaique", 
+        "ibanez", 
+        "general carlos", 
+        "puerto aysen", 
+        "chile chico", 
+        "cochrane"
     ],
     "Región de Magallanes": ["magallanes", "punta arenas"]
 }
