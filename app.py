@@ -18,54 +18,47 @@ st.set_page_config(
 # ==============================================================================
 import unicodedata
 
-def normalizar_texto(texto):
-    if not isinstance(texto, str):
+def limpiar_texto(txt):
+    if not isinstance(txt, str):
         return ""
-    # Descompone caracteres con acentos y virgulillas (ñ -> n~)
-    texto_norm = unicodedata.normalize('NFKD', texto)
-    # Filtra quitando las marcas diacríticas (elimina tildes y el signo de la ñ)
-    texto_sin_tildes = "".join(c for c in texto_norm if not unicodedata.combining(c))
-    # Limpia signos y pasa a minúsculas
-    return texto_sin_tildes.replace("'", "").replace(".", "").replace("-", " ").lower().strip()
+    # Quitar acentos, diéresis y caracteres raros
+    norm = unicodedata.normalize('NFKD', txt).encode('ASCII', 'ignore').decode('utf-8')
+    return norm.lower().replace("'", "").replace(".", "").strip()
 
 MAPA_REGIONES = {
     "Región de Arica y Parinacota": ["arica", "parinacota"],
     "Región de Tarapacá": ["tarapaca", "iquique"],
-    "Región de Antofagasta": ["antofagasta"],
-    "Región de Atacama": ["atacama", "copiapo"],
-    "Región de Coquimbo": ["coquimbo", "la serena"],
-    "Región de Valparaíso": ["valparaiso", "vina del mar", "aconcagua"],
+    "Región de Antofagasta": ["antofagasta", "calama", "tocopilla"],
+    "Región de Atacama": ["atacama", "copiapo", "vallenar"],
+    "Región de Coquimbo": ["coquimbo", "la serena", "ovalle", "illapel"],
+    "Región de Valparaíso": ["valparaiso", "vina", "aconcagua", "quillota", "san antonio"],
     "Región Metropolitana": [
-        "metropolitano", "central", "norte", "oriente", "sur oriente", "occidente"
+        "metropolitano", "central", "norte", "oriente", "sur oriente", "occidente", "santiago"
     ],
     "Región de O'Higgins": [
-        "libertador", "ohiggins", "rancagua"
+        "libertador", "ohiggins", "rancagua", "san fernando", "rengo", "santa cruz"
     ],
-    "Región del Maule": ["maule", "talca"],
-    "Región de Ñuble": ["nuble", "chillan"],
-    "Región del Biobío": ["concepcion", "talcahuano", "biobio", "arauco"],
-    "Región de La Araucanía": ["araucania", "temuco"],
-    "Región de Los Ríos": ["valdivia", "los rios"],
-    "Región de Los Lagos": ["osorno", "reloncavi", "chiloe", "los lagos", "puerto montt"],
+    "Región del Maule": ["maule", "talca", "curico", "linares", "parral"],
+    "Región de Ñuble": ["nuble", "chillan", "san carlos"],
+    "Región del Biobío": ["concepcion", "talcahuano", "biobio", "arauco", "los angeles", "coronel"],
+    "Región de La Araucanía": ["araucania", "temuco", "angol", "villarrica"],
+    "Región de Los Ríos": ["valdivia", "los rios", "la union"],
+    "Región de Los Lagos": ["osorno", "reloncavi", "chiloe", "los lagos", "puerto montt", "ancud", "castro"],
     "Región de Aysén": [
-        "aysen", 
-        "coyhaique", 
-        "ibanez", 
-        "general carlos", 
-        "puerto aysen", 
-        "chile chico", 
-        "cochrane"
+        "aysen", "coyhaique", "ibanez", "puerto aysen", "cochrane", "chile chico", "cisnes"
     ],
-    "Región de Magallanes": ["magallanes", "punta arenas"]
+    "Región de Magallanes": ["magallanes", "punta arenas", "natales", "porvenir"]
 }
 
-def asignar_region(glosa):
-    glosa_norm = normalizar_texto(glosa)
-    if not glosa_norm:
-        return "Otras"
-    for region, palabras_clave in MAPA_REGIONES.items():
-        for clave in palabras_clave:
-            if clave in glosa_norm:
+def asignar_region_fila(fila):
+    # Combina el Servicio de Salud con el Establecimiento para no perder ningún hospital
+    glosa = limpiar_texto(fila.get("GLOSA_SSS", ""))
+    estab = limpiar_texto(fila.get("ESTABLECIMIENTO", ""))
+    texto_busqueda = f"{glosa} {estab}"
+    
+    for region, palabras in MAPA_REGIONES.items():
+        for p in palabras:
+            if p in texto_busqueda:
                 return region
     return "Otras"
 
@@ -90,11 +83,7 @@ def cargar_datos_minsal():
                 else:
                     df_raw[col] = 0.0
             
-            # Asignación de región
-            if "GLOSA_SSS" in df_raw.columns:
-                df_raw["REGION"] = df_raw["GLOSA_SSS"].apply(asignar_region)
-            else:
-                df_raw["REGION"] = "Desconocida"
+            df_raw["REGION"] = df_raw.apply(asignar_region_fila, axis=1)
                 
             return df_raw
         else:
