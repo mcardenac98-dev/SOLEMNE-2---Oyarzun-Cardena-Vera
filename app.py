@@ -70,32 +70,29 @@ def cargar_datos_chile():
 
 MAPA_REGIONES = {
     "Región de Arica y Parinacota": ["Arica"],
-    "Región de Tarapacá": ["Iquique"],
+    "Región de Tarapacá": ["Tarapacá", "Tarapaca"],
     "Región de Antofagasta": ["Antofagasta"],
     "Región de Atacama": ["Atacama"],
     "Región de Coquimbo": ["Coquimbo"],
-    "Región de Valparaíso": ["Valparaíso San Antonio", "Viña del Mar Quillota"],
+    "Región de Valparaíso": ["Valparaíso", "Valparaiso", "Viña del Mar", "Aconcagua"],
     "Región Metropolitana": [
-        "Metropolitano Central",
-        "Metropolitano Norte",
-        "Metropolitano Oriente",
-        "Metropolitano Sur",
-        "Metropolitano Sur Oriente",
-        "Metropolitano Occidente",
+        "Metropolitano Central", "Metropolitano Norte", "Metropolitano Oriente",
+        "Metropolitano Sur", "Metropolitano Sur Oriente", "Metropolitano Occidente"
     ],
     "Región de O'Higgins": [
-        "Libertador B. O'Higgins",
-        "Libertador B.O'Higgins",
-        "O'Higgins",
+        "Libertador B. O'Higgins", "Libertador B.O'Higgins", "O'Higgins", "Ohiggins", "Rancagua"
     ],
-    "Región del Maule": ["Maule"],
-    "Región de Ñuble": ["Ñuble"],
-    "Región del Biobío": ["Concepción", "Talcahuano", "Biobío"],
-    "Región de La Araucanía": ["Araucanía Norte", "Araucanía Sur"],
-    "Región de Los Ríos": ["Valdivia"],
-    "Región de Los Lagos": ["Osorno", "Reloncaví", "Chiloé"],
-    "Región de Aysén": ["Aysén"],
-    "Región de Magallanes": ["Magallanes"],
+    "Región del Maule": ["Maule", "Del Maule", "Talca"],
+    "Región de Ñuble": ["Ñuble", "Nuble"],
+    "Región del Biobío": ["Concepción", "Concepcion", "Talcahuano", "Biobío", "Biobio", "Arauco"],
+    "Región de La Araucanía": ["Araucanía Norte", "Araucanía Sur", "Araucania Norte", "Araucania Sur"],
+    "Región de Los Ríos": ["Valdivia", "Los Ríos", "Los Rios"],
+    "Región de Los Lagos": ["Osorno", "Reloncaví", "Reloncavi", "Chiloé", "Chiloe", "Los Lagos"],
+    "Región de Aysén": [
+        "Aysén", "Aysen", "Aysén del General Carlos Ibáñez del Campo",
+        "Aysen del General Carlos Ibañez del Campo", "Coyhaique"
+    ],
+    "Región de Magallanes": ["Magallanes", "Punta Arenas"]
 }
 
 with st.spinner("Conectando y organizando datos territoriales..."):
@@ -148,7 +145,21 @@ areas_sel = st.sidebar.multiselect(
     options=areas_disponibles,
     default=areas_disponibles,
 )
+# Obtener especialidades disponibles únicamente para la región/establecimiento actual
+especialidades_disponibles = sorted(df_region["AREA_FUNCIONAL"].dropna().unique().tolist())
 
+# Multiselect que toma por defecto todas las especialidades válidas de esa región
+especialidades_sel = st.sidebar.multiselect(
+    "Especialidad / Área Funcional:",
+    options=especialidades_disponibles,
+    default=especialidades_disponibles[:5] if len(especialidades_disponibles) >= 5 else especialidades_disponibles
+)
+
+# Filtrar según la selección
+if especialidades_sel:
+    df_filtrado = df_region[df_region["AREA_FUNCIONAL"].isin(especialidades_sel)]
+else:
+    df_filtrado = df_region
 # Aplicación final del filtro reactivo
 df_filtrado = df_por_region[
     (df_por_region["ESTABLECIMIENTO"].isin(hosp_sel))
