@@ -83,7 +83,11 @@ MAPA_REGIONES = {
         "Metropolitano Sur Oriente",
         "Metropolitano Occidente",
     ],
-    "Región de O'Higgins": ["Libertador B.O'Higgins"],
+    "Región de O'Higgins": [
+        "Libertador B. O'Higgins",
+        "Libertador B.O'Higgins",
+        "O'Higgins",
+    ],
     "Región del Maule": ["Maule"],
     "Región de Ñuble": ["Ñuble"],
     "Región del Biobío": ["Concepción", "Talcahuano", "Biobío"],
