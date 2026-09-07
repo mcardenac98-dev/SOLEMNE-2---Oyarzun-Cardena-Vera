@@ -103,11 +103,14 @@ if df.empty:
 # ==============================================================================
 st.sidebar.title("🗺️ Filtros Territoriales")
 
-# 1. Filtro Región
-regiones_disponibles = list(MAPA_REGIONES.keys())
-region_sel = st.sidebar.selectbox("Seleccione Región:", regiones_disponibles, index=6)
+# 1. Filtro Región (con opción Nacional)
+regiones_disponibles = ["Todas las Regiones (Nivel Nacional)"] + list(MAPA_REGIONES.keys())
+region_sel = st.sidebar.selectbox("Seleccione Región:", regiones_disponibles, index=0)
 
-df_region = df[df["REGION"] == region_sel]
+if region_sel == "Todas las Regiones (Nivel Nacional)":
+    df_region = df.copy()
+else:
+    df_region = df[df["REGION"] == region_sel].copy()
 
 # 2. Filtro Establecimiento
 todos_los_est = st.sidebar.checkbox("Incluir todos los establecimientos", value=True)
